@@ -509,7 +509,4 @@ docker-compose exec wordpress ping crypto-api
 
 ## Security Considerations
 
-### Production Security
-
-1. **Change default passwords** in environment variables
-2. **Use strong MySQL pa
+ 
