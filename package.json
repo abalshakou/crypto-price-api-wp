@@ -1,0 +1,50 @@
+{
+  "name": "crypto-price-api-tests",
+  "version": "1.0.0",
+  "description": "Test suite for Cryptocurrency Price API project",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:api": "cd api && npm test",
+    "test:integration": "jest __tests__/integration.test.js --testTimeout=60000",
+    "test:performance": "jest __tests__/performance.test.js --testTimeout=60000",
+    "test:e2e": "jest __tests__/e2e.test.js --testTimeout=120000",
+    "test:all": "npm run test:api && npm run test:integration && npm run test:performance",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:docker": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit",
+    "test:docker-clean": "docker-compose -f docker-compose.test.yml down -v --rmi all",
+    "test:full-system": "npm run test:docker",
+    "pretest": "echo 'Running comprehensive test suite...'",
+    "posttest": "echo 'Test suite completed!'"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "nock": "^13.4.0",
+    "axios": "^1.6.0",
+    "puppeteer": "^21.5.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.js"],
+    "collectCoverageFrom": [
+      "api/*.js",
+      "!api/node_modules/**",
+      "!coverage/**"
+    ],
+    "coverageReporters": ["text", "lcov", "html"],
+    "testMatch": ["**/__tests__/**/*.test.js"],
+    "testTimeout": 30000,
+    "verbose": true,
+    "collectCoverage": false,
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  }
+}

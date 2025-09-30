@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Test API service
+  crypto-api-test:
+    build: ./api
+    container_name: crypto-api-test
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=test
+      - PORT=3000
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Test WordPress
+  wordpress-test:
+    image: wordpress:latest
+    container_name: wordpress-test
+    ports:
+      - "8082:80"
+    environment:
+      WORDPRESS_DB_HOST: db-test:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: test_password
+      WORDPRESS_DB_NAME: wordpress_test
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - ./wordpress-plugin/crypto-ticker:/var/www/html/wp-content/plugins/crypto-ticker
+    depends_on:
+      - db-test
+      - crypto-api-test
+    networks:
+      - test-network
+
+  # Test MySQL Database
+  db-test:
+    image: mysql:8.0
+    container_name: mysql_test
+    environment:
+      MYSQL_ROOT_PASSWORD: test_root_password
+      MYSQL_DATABASE: wordpress_test
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: test_password
+    volumes:
+      - test_db_data:/var/lib/mysql
+    networks:
+      - test-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: test-runner
+    environment:
+      - API_URL=http://crypto-api-test:3000
+      - WORDPRESS_URL=http://wordpress-test:80
+      - NODE_ENV=test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - crypto-api-test
+      - wordpress-test
+      - db-test
+    networks:
+      - test-network
+    command: npm run test:integration
+
+volumes:
+  test_db_data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge

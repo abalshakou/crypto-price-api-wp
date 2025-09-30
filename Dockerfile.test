@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies for testing
+COPY package*.json ./
+RUN npm install
+
+# Install additional test dependencies
+RUN npm install -g jest supertest nock axios
+
+# Copy test files
+COPY __tests__ ./__tests__
+COPY api/__tests__ ./api/__tests__
+
+# Copy API source for testing
+COPY api/app.js ./api/
+
+# Set test environment
+ENV NODE_ENV=test
+
+# Default command
+CMD ["npm", "test"]
